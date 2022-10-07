@@ -52,6 +52,7 @@ object AdvancedPatternMatching extends App {
   object even {
     def unapply(arg: Int): Boolean = arg % 2 == 0
   }
+
   object singleDigit {
     def unapply(arg: Int): Boolean = arg > -10 && arg < 10
   }
@@ -71,4 +72,71 @@ object AdvancedPatternMatching extends App {
   }
 
   println(mathPropertyWithBetterPattern)
+
+  // infix patterns
+  case class Or[A, B](a: A, b: B) // Either
+
+  val either = Or(2, "two")
+  val humanDescription = either match {
+    case number Or string => s"$number is written as $string"
+  }
+  println(humanDescription)
+
+  val vararg = numbers match {
+    case List(1, _*) => "starting with 1"
+  }
+
+  abstract class MyList[+A] {
+    def head: A = ???
+
+    def tail: MyList[A] = ???
+  }
+
+  case object Empty extends MyList[Nothing]
+
+  case class Cons[+A](override val head: A, override val tail: MyList[A]) extends MyList[A]
+
+  object MyList {
+    def unapplySeq[A](list: MyList[A]): Option[Seq[A]] =
+      if (list == Empty) Some(Seq.empty)
+      else unapplySeq(list.tail).map(list.head +: _)
+  }
+
+  val myList: MyList[Int] = Cons(1, Cons(2, Cons(3, Empty)))
+  val decomposed = myList match {
+    case MyList(1, 2, _*) => "starting with 1, 2"
+    case _ => "something else"
+  }
+  println(decomposed)
+
+  val a = MyList.unapplySeq(Cons(1, Cons(2, Cons(3, Empty))))
+  /*
+  unapplySeq(Cons(1, Cons(2, Cons(3, Empty))))
+  unapplySeq(Cons(2, Cons(3, Empty)))
+  unapplySeq(Cons(3, Empty))
+  unapplySeq(Empty)
+  3 :: 2 :: 1 :: Empty
+  */
+  println(a)
+
+  // custom return types for unapply
+  // isEmpty: Boolean, get: something
+  abstract class Wrapper[T] {
+    def isEmpty: Boolean
+
+    def get: T
+  }
+
+  object PersonWrapper {
+    def unapply(person: Person): Wrapper[String] = new Wrapper[String] {
+      override def isEmpty: Boolean = false
+
+      override def get: String = person.name
+    }
+  }
+
+  println(bob match {
+    case PersonWrapper(n) => s"This person's name is $n"
+    case _ => "An alien"
+  })
 }
