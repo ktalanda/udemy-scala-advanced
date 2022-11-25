@@ -38,26 +38,6 @@ object TypeClasses extends App {
     override def serialize(user: User): String = s"<div>${user.name}</div>"
   }
 
-  trait MyTypeClassTemplate[T] {
-    def action(value: T): String
-  }
-
-  object MyTypeClassTemplate {
-    def apply[T](implicit instance: MyTypeClassTemplate[T]) = instance
-  }
-
-  trait Equal[T] {
-    def apply(left: T, right: T): Boolean
-  }
-
-  implicit object NameEqual extends Equal[User] {
-    override def apply(left: User, right: User): Boolean = left.name == right.name
-  }
-
-  object AgeEquality extends Equal[User] {
-    override def apply(left: User, right: User): Boolean = left.age == right.age
-  }
-
   object HTMLSerializer {
     def serialize[T](value: T)(implicit serializer: HTMLSerializer[T]): String =
       serializer.serialize(value)
@@ -71,17 +51,5 @@ object TypeClasses extends App {
 
   println(HTMLSerializer.serialize(42))
   println(HTMLSerializer.serialize(john))
-
-  object Equal {
-    def apply[T](a: T, b: T)(implicit equalizer: Equal[T]): Boolean =
-      equalizer.apply(a, b)
-  }
-
-  val anotherJohn = User("John", 12, "test@test.com")
-
-  println(Equal.apply(john, anotherJohn))
-
-  //AD-HOC polymorphism
-
 
 }
