@@ -52,4 +52,25 @@ object TypeClasses extends App {
   println(HTMLSerializer.serialize(42))
   println(HTMLSerializer.serialize(john))
 
+  implicit class HTMLEnrichment[T](value: T) {
+    def toHTML(implicit serializer: HTMLSerializer[T]): String =
+      serializer.serialize(value)
+  }
+
+  println(john.toHTML)
+  println(2.toHTML)
+  println(john.toHTML(PartialUserSerializer))
+
+  def htmlBoilerPlate[T](content: T)(implicit serializer: HTMLSerializer[T]): String =
+    s"<html><body>${content.toHTML(serializer)}</body></html>"
+
+  def htmlSugar[T: HTMLSerializer](content: T): String =
+    s"<html><body>${content.toHTML}</body></html>"
+
+  case class Permission(mask: String)
+  implicit val defaultPermission: Permission = Permission("0744")
+
+  val standardPerms = implicitly[Permission]
+
+
 }
